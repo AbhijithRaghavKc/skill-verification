@@ -1,0 +1,95 @@
+{
+  "total_simulations": 500,
+  "overall_pass_rate": 0.418,
+  "average_score": 58.8,
+  "tier_accuracy": 0.248,
+  "per_level": {
+    "expert": {
+      "avg_score": 86.8,
+      "std_score": 3.4466,
+      "pass_rate": 1.0,
+      "avg_confidence": 89.6,
+      "tier_accuracy": 0.0
+    },
+    "strong": {
+      "avg_score": 77.39,
+      "std_score": 4.9275,
+      "pass_rate": 1.0,
+      "avg_confidence": 79.52,
+      "tier_accuracy": 0.0
+    },
+    "good": {
+      "avg_score": 60.75,
+      "std_score": 4.8417,
+      "pass_rate": 0.09,
+      "avg_confidence": 64.2,
+      "tier_accuracy": 0.09
+    },
+    "developing": {
+      "avg_score": 44.7,
+      "std_score": 5.4874,
+      "pass_rate": 0.0,
+      "avg_confidence": 49.68,
+      "tier_accuracy": 0.15
+    },
+    "beginner": {
+      "avg_score": 24.14,
+      "std_score": 5.5723,
+      "pass_rate": 0.0,
+      "avg_confidence": 29.24,
+      "tier_accuracy": 1.0
+    }
+  },
+  "per_skill": {
+    "Docker": {
+      "avg_score": 59.88,
+      "pass_rate": 0.42,
+      "tier_accuracy": 0.26
+    },
+    "Python": {
+      "avg_score": 59.42,
+      "pass_rate": 0.44,
+      "tier_accuracy": 0.26
+    },
+    "Solidity": {
+      "avg_score": 59.4,
+      "pass_rate": 0.46,
+      "tier_accuracy": 0.32
+    },
+    "Rust": {
+      "avg_score": 59.08,
+      "pass_rate": 0.4,
+      "tier_accuracy": 0.22
+    },
+    "Node.js": {
+      "avg_score": 58.76,
+      "pass_rate": 0.42,
+      "tier_accuracy": 0.26
+    },
+    "JavaScript": {
+      "avg_score": 58.66,
+      "pass_rate": 0.4,
+      "tier_accuracy": 0.22
+    },
+    "Go": {
+      "avg_score": 58.5,
+      "pass_rate": 0.42,
+      "tier_accuracy": 0.24
+    },
+    "AWS": {
+      "avg_score": 58.36,
+      "pass_rate": 0.4,
+      "tier_accuracy": 0.22
+    },
+    "React": {
+      "avg_score": 58.36,
+      "pass_rate": 0.4,
+      "tier_accuracy": 0.26
+    },
+    "TypeScript": {
+      "avg_score": 57.14,
+      "pass_rate": 0.42,
+      "tier_accuracy": 0.22
+    }
+  }
+}

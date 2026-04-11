@@ -1,0 +1,211 @@
+{
+  "accuracy": 0.55,
+  "precision": 0.5139,
+  "recall": 0.55,
+  "f1_score": 0.4286,
+  "avg_verified_score": 56.2,
+  "avg_unverified_score": 56.3,
+  "verification_improvement": -0.0,
+  "test_cases": [
+    {
+      "id": "TC01",
+      "desc": "Senior full-stack dev with all verified skills \u2192 React/Node/TS job",
+      "score": 100,
+      "confidence": 100,
+      "verified_bonus": 10,
+      "expected": "excellent",
+      "predicted": "excellent",
+      "correct": true
+    },
+    {
+      "id": "TC02",
+      "desc": "DevOps expert, all verified \u2192 Docker/AWS/Go job",
+      "score": 100,
+      "confidence": 100,
+      "verified_bonus": 10,
+      "expected": "excellent",
+      "predicted": "excellent",
+      "correct": true
+    },
+    {
+      "id": "TC03",
+      "desc": "Blockchain dev with high Solidity + JS verified \u2192 Solidity/JS job",
+      "score": 100,
+      "confidence": 100,
+      "verified_bonus": 10,
+      "expected": "excellent",
+      "predicted": "excellent",
+      "correct": true
+    },
+    {
+      "id": "TC04",
+      "desc": "Python/AWS expert verified \u2192 Python/AWS data role",
+      "score": 100,
+      "confidence": 100,
+      "verified_bonus": 10,
+      "expected": "excellent",
+      "predicted": "excellent",
+      "correct": true
+    },
+    {
+      "id": "TC05",
+      "desc": "Rust systems dev verified \u2192 Rust/Go job",
+      "score": 100,
+      "confidence": 100,
+      "verified_bonus": 7,
+      "expected": "excellent",
+      "predicted": "excellent",
+      "correct": true
+    },
+    {
+      "id": "TC06",
+      "desc": "Mid-level frontend dev, partially verified \u2192 React/TS job",
+      "score": 98,
+      "confidence": 100,
+      "verified_bonus": 7,
+      "expected": "good",
+      "predicted": "excellent",
+      "correct": false
+    },
+    {
+      "id": "TC07",
+      "desc": "Backend dev good at Node, okay at Docker \u2192 Node/Docker/AWS job",
+      "score": 93,
+      "confidence": 100,
+      "verified_bonus": 3,
+      "expected": "good",
+      "predicted": "excellent",
+      "correct": false
+    },
+    {
+      "id": "TC08",
+      "desc": "Python dev, no verification \u2192 Python/Docker role",
+      "score": 84,
+      "confidence": 100,
+      "verified_bonus": 0,
+      "expected": "good",
+      "predicted": "good",
+      "correct": true
+    },
+    {
+      "id": "TC09",
+      "desc": "Full-stack with unverified skills exceeding requirements \u2192 JS/React/Node",
+      "score": 100,
+      "confidence": 100,
+      "verified_bonus": 0,
+      "expected": "good",
+      "predicted": "excellent",
+      "correct": false
+    },
+    {
+      "id": "TC10",
+      "desc": "AWS specialist, verified, weak on other \u2192 AWS/Python/Docker job",
+      "score": 85,
+      "confidence": 100,
+      "verified_bonus": 3,
+      "expected": "good",
+      "predicted": "excellent",
+      "correct": false
+    },
+    {
+      "id": "TC11",
+      "desc": "Junior dev with React only \u2192 React/Node/TS job",
+      "score": 44,
+      "confidence": 50,
+      "verified_bonus": 2,
+      "expected": "partial",
+      "predicted": "low",
+      "correct": false
+    },
+    {
+      "id": "TC12",
+      "desc": "Python dev applying to frontend job, has some JS \u2192 React/TS job",
+      "score": 20,
+      "confidence": 33,
+      "verified_bonus": 0,
+      "expected": "partial",
+      "predicted": "low",
+      "correct": false
+    },
+    {
+      "id": "TC13",
+      "desc": "Docker only for full DevOps role \u2192 Docker/AWS/Go/Python",
+      "score": 26,
+      "confidence": 25,
+      "verified_bonus": 2,
+      "expected": "partial",
+      "predicted": "low",
+      "correct": false
+    },
+    {
+      "id": "TC14",
+      "desc": "Beginner Go dev \u2192 Senior Go/Rust job",
+      "score": 26,
+      "confidence": 100,
+      "verified_bonus": 0,
+      "expected": "partial",
+      "predicted": "low",
+      "correct": false
+    },
+    {
+      "id": "TC15",
+      "desc": "Mid-level React, no backend \u2192 Full-stack React/Node/Docker",
+      "score": 35,
+      "confidence": 33,
+      "verified_bonus": 0,
+      "expected": "partial",
+      "predicted": "low",
+      "correct": false
+    },
+    {
+      "id": "TC16",
+      "desc": "No matching skills at all \u2192 React/Node/TS job",
+      "score": 0,
+      "confidence": 0,
+      "verified_bonus": 0,
+      "expected": "low",
+      "predicted": "low",
+      "correct": true
+    },
+    {
+      "id": "TC17",
+      "desc": "Complete beginner, level 1 everywhere \u2192 Senior full-stack role",
+      "score": 9,
+      "confidence": 50,
+      "verified_bonus": 0,
+      "expected": "low",
+      "predicted": "low",
+      "correct": true
+    },
+    {
+      "id": "TC18",
+      "desc": "Empty skills \u2192 any job",
+      "score": 0,
+      "confidence": 0,
+      "verified_bonus": 0,
+      "expected": "low",
+      "predicted": "low",
+      "correct": true
+    },
+    {
+      "id": "TC19",
+      "desc": "Solidity-only dev \u2192 Python/AWS/Docker data engineering role",
+      "score": 0,
+      "confidence": 0,
+      "verified_bonus": 0,
+      "expected": "low",
+      "predicted": "low",
+      "correct": true
+    },
+    {
+      "id": "TC20",
+      "desc": "Go beginner \u2192 Senior Go/Rust/AWS systems role",
+      "score": 5,
+      "confidence": 25,
+      "verified_bonus": 0,
+      "expected": "low",
+      "predicted": "low",
+      "correct": true
+    }
+  ]
+}

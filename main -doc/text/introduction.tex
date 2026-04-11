@@ -1,0 +1,39 @@
+%% introduction.tex
+%%
+
+%% ==============================
+\section{Introduction}
+\label{sec:Introduction}
+%% ==============================
+
+Verifying professional skills and credentials remains a critical challenge in the modern digital economy, characterised by widespread fraud, procedural inefficiencies, and fragmented technology systems. Traditional credential verification relies on centralised authorities that require 5--10 business days per verification request, with each verification costing organisations an average of \$75~\citep{Patel2024}. The static nature of paper-based and PDF-stored credentials further compounds these inefficiencies, as they cannot adapt to the rapidly evolving skill requirements of modern industries. Research has consistently demonstrated that a significant proportion of professional resumes contain inaccuracies, imposing substantial economic costs on the global labour market~\citep{Kisi2022}.
+
+Three interrelated problems underpin this challenge. First, conventional credentials---whether paper documents or digitally stored PDFs---are susceptible to forgery because they depend on centralised issuers whose records can be compromised or fabricated~\citep{Cardenas2025}. Second, the verification process itself is expensive, slow, and contingent on the issuing institution maintaining accessible records indefinitely~\citep{Hemairy2024}. Third, a fundamental disconnect exists between skill verification systems and job matching platforms: matching algorithms that rely on unverified, self-reported skill data exhibit severely degraded accuracy~\citep{Qin2020}.
+
+While each of these problems has received individual attention in the research literature, no existing system addresses all three within a unified architecture. Blockchain-based credentialing systems store and verify credentials but do not assess the underlying skills. AI-based assessment frameworks evaluate competencies but produce results that are not linked to any permanent, tamper-proof record. Machine learning job matching algorithms achieve high accuracy under ideal conditions but suffer significant performance drops when operating on unverified skill data. This fragmentation represents a significant research gap that the present work seeks to address.
+
+\subsection{Research Question}
+\label{sec:ResearchQuestions}
+
+The research gap identified above motivates the following research question:
+
+\medskip
+\noindent\textbf{RQ1:} \textit{To what extent does integrating blockchain-verified credential data into a weighted ML job matching algorithm improve matching accuracy compared to approaches that operate on unverified skill data?}
+\medskip
+
+\subsection{Research Contributions}
+\label{sec:ResearchContributions}
+
+This research designs, implements, and evaluates a novel integrated platform---SkillChain---that unifies blockchain credentialing, AI assessment, and ML job matching within a cloud-native architecture. The contributions include:
+
+\begin{enumerate}
+    \item A novel architectural model that integrates NFT-based credential issuance, AI-powered skill assessment with automated grading, and ML-based job matching into a seamless end-to-end pipeline.
+    \item An automated assessment-to-credential pipeline in which passed AI evaluations are converted into blockchain-verified skill records without manual intervention, enabling a direct link between demonstrated competency and on-chain certification.
+    \item A weighted ML matching algorithm that applies a verified-credential bonus, enabling empirical comparison of matching accuracy between verified and unverified skill data.
+    \item An evaluation framework that measures the impact of blockchain-verified credentials on job matching quality through controlled comparison of verified versus unverified matching scenarios.
+\end{enumerate}
+
+\subsection{Report Structure}
+\label{sec:ReportStructure}
+
+The remainder of this report is organised as follows. Section~\ref{sec:rw} critically reviews the literature on blockchain credentialing, NFT-based certificates, AI assessment, and machine learning job matching to identify the integration gaps that this research addresses. Section~\ref{sec:Methodology} describes the Design Science Research methodology adopted, including the research design, development approach, and evaluation strategy. Implementation details and technology choices are presented in subsequent sections.

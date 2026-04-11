@@ -1,0 +1,99 @@
+%% relatedwork.tex
+%%
+
+%% ==============
+\section{Related Work}
+\label{sec:rw}
+%% ==============
+
+This section critically examines the existing literature across three interconnected domains: blockchain-based credential verification systems, NFT-based digital credentials and decentralised identity, AI-powered skill assessment and ML-based job matching. Through a comparative and critical lens, this review identifies the integration gaps that motivate the present research and positions the SkillChain platform relative to the closest prior work.
+
+%% ===========================
+\subsection{Blockchain-Based Credential Verification Systems}
+\label{sec:BlockchainCredentials}
+%% ===========================
+
+Blockchain technology has emerged as a promising foundation for tamper-proof credential systems, though implementation strategies vary considerably in their design, scalability, and integration capability. Research interest in applying blockchain to credential verification has grown substantially in recent years, with the technology's inherent properties of immutability and decentralisation making it a natural fit for this domain.
+
+\citet{Karatas2018} produced an early exploration of this space by developing an Ethereum-based smart contract integrated with the Moodle Learning Management System, enabling certificate information to be stored on-chain for verification. While foundational in demonstrating the feasibility of smart contract-based credentialing, this work was limited to a single LMS context and did not address credential portability or interoperability across platforms. \citet{Nousias2022} advanced the field with VerDe, a decentralised application that introduced Business Process Model and Notation (BPMN) to manage credential registration and verification workflows on Ethereum. VerDe addressed usability concerns but remained focused on the verification of pre-existing credentials without considering how the underlying skills were originally assessed.
+
+More recent work has explored operational efficiency and cost reduction. \citet{Moya2025} introduced ZKBAR-V, a zero-knowledge proof-enabled system deployed on Polygon's zkEVM that achieves approximately 94\% cost savings compared to Ethereum Mainnet operations. This work is particularly relevant to the present research, as it demonstrates the feasibility of Polygon-based credential verification at scale. \citet{Cardenas2025} presented a hybrid blockchain prototype using Docker nodes with Byzantine consensus, incorporating QR codes for credential traceability. However, their approach requires specialised infrastructure that limits practical adoption.
+
+Several studies have examined blockchain credentialing through a national or institutional lens. \citet{Hemairy2024} proposed a comprehensive framework for the UAE context, using ECDSA digital signatures to enable multi-party signing by governing bodies, institutions, and learners. \citet{Ileana2024} investigated blockchain for competency validation in education, proposing an architecture for the diploma awarding process. \citet{Patel2024} developed a secure digital certificate verification system demonstrating reduced fraud and faster validation. \citet{Noshi2024} similarly addressed vulnerabilities in academic credentialing through a blockchain-based solution. While all of these systems improve upon traditional verification, they share a common limitation: they store and verify credentials but do not assess the skills those credentials represent.
+
+The most comprehensive review of this domain was conducted by \citet{Alsobhi2023}, who performed a systematic literature review of blockchain-based micro-credentialing systems in higher education, analysing studies published between 2016 and 2022. Their review identified key requirements for blockchain-based credentialing---including immutability, decentralisation, and interoperability---but noted that no existing system integrated automated skill assessment with credential issuance. This finding directly supports the integration gap that the present research addresses.
+
+%% ===========================
+\subsection{NFT-Based Credentials and Decentralised Identity}
+\label{sec:NFTCredentials}
+%% ===========================
+
+The application of Non-Fungible Tokens (NFTs) to digital credentialing represents an important evolution beyond simple blockchain record-keeping, enabling verifiable ownership, selective sharing, and token-based lifecycle management of credentials.
+
+\citet{Zhao2022} proposed NFTCert, one of the earliest NFT-based certificate management frameworks, which integrated an online payment gateway to eliminate the need for cryptocurrency transactions by end users. NFTCert covered the complete certificate lifecycle---schema definition, minting, verification, and revocation---on a private blockchain. However, the use of a private chain limits the decentralisation benefits and cross-platform verifiability that public blockchains offer. \citet{Khati2023} extended the NFT credential concept by developing a student certificate sharing system that grants students ownership and control over their academic certificates through NFT tokenisation, enabling selective sharing with employers while ensuring authenticity via digital signatures and hashing. In a subsequent study, \citet{Khati2025} applied the Technology Acceptance Model (TAM) to investigate user acceptance of their NFT-based system, finding that perceived ease of use and usability significantly influenced adoption---an important human factors consideration that technical implementations often overlook.
+
+\citet{Aung2024} provided the most directly relevant NFT implementation to the present research, implementing NFT-based certificates using the ERC-721 standard on Ethereum. Their work covered NFT minting, distribution, and management for education credentials and demonstrated the technical feasibility of ERC-721 for this purpose. However, their system did not include automated skill assessment or job matching functionality. \citet{Le2023} introduced IU-TransCert, which employed a novel Auditable Merkle Tree data structure to publish credential roots on the blockchain, enabling automated auditing by educational authorities without involving the original issuers. This auditability feature addresses an important transparency requirement but does not extend to skill verification or employment matching.
+
+At a broader architectural level, \citet{Tepelidis2023} proposed a multi-blockchain system compatible with the Open Badges standard, recording badge-awarding events across distributed ledgers. While this approach improves interoperability, it introduces complexity in cross-chain verification. The decentralised identity landscape was critically examined by \citet{Grech2021}, who analysed the promise versus praxis of blockchain and Self-Sovereign Identity (SSI) for educational credentialing in Europe. Their analysis highlighted governance, interoperability, and trust challenges that have hindered broader adoption. Complementing this critical perspective, \citet{Ahmed2022} provided a comprehensive survey of blockchain-based SSI ecosystems, tracing the evolution from centralised to decentralised identity management and reviewing both academic and commercial implementations.
+
+A critical observation across this body of work is that NFT-based credential systems focus on the \textit{representation} and \textit{verification} of credentials but universally assume that the skill or competency has been validated through an external process. None of the reviewed NFT systems incorporate an integrated assessment mechanism that automatically generates credentials upon successful skill evaluation.
+
+%% ===========================
+\subsection{AI-Powered Assessment and ML-Based Job Matching}
+\label{sec:AIMLMatching}
+%% ===========================
+
+The third pillar of the present research concerns the application of AI for skill assessment and ML for job-candidate matching. While substantial progress has been made in both areas independently, their integration with blockchain credentialing remains unexplored.
+
+In the domain of job matching, \citet{Qin2020} proposed TAPJFNN (Topic-based Ability-aware Person-Job Fit Neural Network), which models candidate-job matching at three levels: word-level representation, hierarchical ability-aware representation, and person-job fit prediction. This approach captures latent skill-requirement alignments rather than relying on surface-level keyword matching, achieving strong accuracy on curated datasets. However, the model's performance is contingent on the reliability of input skill data, which in practice is often self-reported and unverified. \citet{Shen2024} presented LinkedIn's industrial-scale approach to job matching, describing a two-stage retrieval-and-ranking paradigm using deep learning for real-time personalised matching across millions of candidates and postings. While impressive in scale, their system operates within a closed commercial ecosystem and does not incorporate blockchain-verified credentials.
+
+\citet{Rezaeipourfarsangi2023} treated resume-job matching as a document ranking problem using deep neural networks, demonstrating improvements over keyword-based matching in traditional Applicant Tracking Systems. \citet{Pendyala2022} took a broader approach by combining social media profiling, resume analysis, and NLP techniques to generate employability scores and emotional intelligence indicators for candidate evaluation. \citet{Bian2020} addressed the challenge of sparse interaction data in job matching through MV-CoN (Multi-View Co-Teaching Network), which uses multi-view representations and a co-teaching strategy to overcome noisy training signals. All three studies advance the state of the art in matching algorithms but do not consider how the verification status of skills affects matching accuracy---a gap that is central to the present research.
+
+The intersection of fairness and AI recruitment was examined by \citet{Delecraz2022}, who proposed a fair-by-design methodology for ML-based job matching algorithms. Their work ensures inclusive recruitment outcomes by correcting algorithmic biases while maintaining matching quality. This ethical dimension is relevant to the SkillChain platform, which must ensure that its verified-credential bonus does not unfairly disadvantage candidates who have not yet undergone blockchain verification.
+
+Two studies directly connect blockchain technology with the recruitment domain. \citet{Bedi2023} proposed a smart contract-based skill verification system for recruitment on Ethereum, where companies can verify candidate skills and former employers can endorse skill claims. This work is the closest to the present research in combining smart contracts with recruitment but does not include AI-powered assessment or ML-based matching. \citet{Kisi2022} conducted exploratory research on blockchain adoption in recruitment through literature review and expert interviews, identifying opportunities, challenges, and a roadmap for integrating decentralised verification into existing HR workflows. Their findings underscore the practical demand for blockchain-enhanced recruitment systems but remain at a conceptual level without a working prototype.
+
+%% ===========================
+\subsection{Baseline Study: E2C-Chain}
+\label{sec:BaselineStudy}
+%% ===========================
+
+The most directly relevant prior work is the E2C-Chain system proposed by \citet{Liu2020}, which represents the closest baseline to the present research. E2C-Chain is a two-stage blockchain system designed to connect education, employment, and skill certification. It employs a Vickrey-Clarke-Groves (VCG) incentive mechanism to find Nash Equilibrium and ensure social cost minimisation, addressing credential fraud across both educational and professional contexts.
+
+E2C-Chain establishes the conceptual foundation for linking education and employment through blockchain, but it differs from the present research in several critical respects. First, E2C-Chain does not employ NFT-based tokenisation (ERC-721) for credentials, instead using custom blockchain records that lack the ownership, transferability, and standardisation benefits of NFTs. Second, E2C-Chain does not incorporate an AI-powered assessment engine; it assumes that skills have been validated by educational institutions through traditional means. Third, E2C-Chain does not include a machine learning job matching algorithm; the connection between verified credentials and employment outcomes remains manual. The present research extends the E2C-Chain concept by addressing all three of these limitations within a unified platform.
+
+%% ===========================
+\subsection{Summary and Research Gap}
+\label{sec:ResearchGap}
+%% ===========================
+
+The critical evaluation of the literature reveals a substantial research gap at the intersection of these three technological domains. Table~\ref{tbl:literature_comparison} summarises the thematic coverage of the key reviewed studies.
+
+\begin{table}[htb]
+\centering
+\caption{Thematic coverage of reviewed literature.}
+\label{tbl:literature_comparison}
+\vspace{.5em}
+\small
+\begin{tabular}{|p{2.8cm}|p{1.6cm}|p{1.4cm}|p{1.5cm}|p{1.4cm}|p{1.8cm}|}
+    \hline
+    \textbf{Study} & \textbf{Blockchain Creds} & \textbf{NFT (ERC-721)} & \textbf{AI Assess-ment} & \textbf{ML Job Match} & \textbf{Integrated Platform} \\ \hline
+    \citet{Karatas2018} & Yes & No & No & No & No \\ \hline
+    \citet{Nousias2022} & Yes & No & No & No & No \\ \hline
+    \citet{Moya2025} & Yes & No & No & No & No \\ \hline
+    \citet{Alsobhi2023} & Yes & No & No & No & No \\ \hline
+    \citet{Zhao2022} & Yes & Yes & No & No & No \\ \hline
+    \citet{Khati2023} & Yes & Yes & No & No & No \\ \hline
+    \citet{Aung2024} & Yes & Yes & No & No & No \\ \hline
+    \citet{Qin2020} & No & No & No & Yes & No \\ \hline
+    \citet{Shen2024} & No & No & No & Yes & No \\ \hline
+    \citet{Bian2020} & No & No & Yes & No & No \\ \hline
+    \citet{Bedi2023} & Yes & No & No & No & Partial \\ \hline
+    \citet{Liu2020} & Yes & No & No & No & Partial \\ \hline
+    \textbf{This Study} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} \\ \hline
+\end{tabular}
+\end{table}
+
+As Table~\ref{tbl:literature_comparison} illustrates, no existing study combines all five dimensions: blockchain-based credential storage, NFT tokenisation using the ERC-721 standard, AI-powered skill assessment, ML-based job matching, and an integrated end-to-end platform. The baseline study by \citet{Liu2020} and the smart contract recruitment system by \citet{Bedi2023} achieve partial integration but lack NFT tokenisation, AI assessment, and ML matching, respectively. The NFT credential studies~\citep{Zhao2022,Khati2023,Aung2024} provide the tokenisation layer but do not extend to assessment or matching. The ML matching studies~\citep{Qin2020,Shen2024,Bian2020} produce sophisticated algorithms but operate on unverified data, suffering accuracy degradation as a consequence.
+
+By developing the SkillChain platform, this research aims to close this gap by creating an integrated system where AI-powered assessments produce blockchain-verified NFT credentials that directly feed into an ML job matching algorithm. This assessment-to-credential-to-matching pipeline is the core novel contribution, enabling a virtuous cycle in which accurate assessments produce reliable credentials, which in turn enable higher-quality job matching.

@@ -1,0 +1,56 @@
+%% methodology.tex
+%%
+
+%% ==============================
+\section{Research Methodology}
+\label{sec:Methodology}
+%% ==============================
+
+This section describes the research methodology adopted for the design, development, and planned evaluation of the SkillChain platform. The project follows a Design Science Research (DSR) methodology~\citep{Hevner2004}, which is well-suited for information systems research that involves the creation of innovative IT artefacts to solve identified problems. DSR emphasises the iterative design and evaluation of artefacts, aligning with the research objectives of this project.
+
+\subsection{Research Design}
+\label{sec:ResearchDesign}
+
+The DSR framework consists of three cycles: the relevance cycle (connecting the research to the problem domain), the design cycle (building and evaluating the artefact), and the rigour cycle (grounding the work in existing knowledge)~\citep{Hevner2004}. In this project:
+
+\begin{itemize}
+    \item \textbf{Relevance Cycle:} The problem of credential fraud and inefficient skill verification in the digital economy was identified through the literature review in Section~\ref{sec:rw}. Stakeholder requirements were derived from four user roles (candidates, employers, institutions, and administrators), each representing distinct needs within the credential verification and job matching ecosystem.
+    \item \textbf{Design Cycle:} The SkillChain platform is developed iteratively, with each component---blockchain smart contracts, AI assessment engine, ML matching algorithm, and web application---designed, implemented, and tested in successive sprints. Each iteration refines the artefact based on intermediate evaluation results.
+    \item \textbf{Rigour Cycle:} The design decisions are grounded in the related work reviewed in Section~\ref{sec:rw}, adopting established standards such as ERC-721 for NFTs and OpenZeppelin for secure smart contract development, alongside proven architectural patterns for cloud-native web applications.
+\end{itemize}
+
+\subsection{Development Approach}
+\label{sec:DevMethodology}
+
+The software development follows an Agile approach with iterative sprints, enabling continuous integration of feedback and incremental delivery of platform features. The development is organised into the following phases:
+
+\begin{enumerate}
+    \item \textbf{Phase 1 -- Requirements and Architecture:} Defining functional and non-functional requirements, designing the system architecture, and selecting appropriate technologies for each platform component based on the requirements identified in the relevance cycle.
+
+    \item \textbf{Phase 2 -- Blockchain Layer:} Implementing the smart contract for NFT-based credential management using the ERC-721 standard. The contract supports credential issuance restricted to authorised issuers, on-chain verification by any party, and issuer-controlled revocation with role-based access control.
+
+    \item \textbf{Phase 3 -- Data Layer and API:} Designing the relational database schema to capture the relationships between users, skills, credentials, assessments, jobs, and applications. Implementing RESTful API endpoints for all platform operations with authentication, authorisation, and input validation at the system boundary.
+
+    \item \textbf{Phase 4 -- AI Assessment Engine:} Building the assessment engine with a question bank spanning multiple technology skill categories, each with three difficulty tiers (beginner, intermediate, advanced). Implementing difficulty-weighted scoring where harder questions contribute proportionally more to the total score, and a multi-tier recommendation system that generates personalised guidance based on performance patterns across difficulty levels.
+
+    \item \textbf{Phase 5 -- ML Job Matching Algorithm:} Implementing the weighted matching algorithm that computes a compatibility score between candidate skill profiles and job requirements. The algorithm assigns greater weight to required skills than preferred skills and applies a blockchain-verification bonus multiplier to skills that have been verified through the assessment-to-credential pipeline, enabling empirical measurement of the verification impact on matching quality.
+
+    \item \textbf{Phase 6 -- User Interface:} Building the platform interface with role-specific views for each user type, integrating the assessment runner, job matching visualisations, credential management, and analytics dashboard.
+
+    \item \textbf{Phase 7 -- Integration and Evaluation:} End-to-end integration of all components, including the assessment-to-credential pipeline and the credential-to-matching flow. Execution of the evaluation strategy described in Section~\ref{sec:EvalStrategy}.
+\end{enumerate}
+
+\subsection{Evaluation Strategy}
+\label{sec:EvalStrategy}
+
+The evaluation of SkillChain is planned across three dimensions, each targeting a specific aspect of the research question:
+
+\begin{enumerate}
+    \item \textbf{Functional Evaluation:} Testing the smart contract functions for correctness, security, and gas efficiency on a public testnet. Verifying the end-to-end credential lifecycle from issuance through decentralised storage to on-chain verification and revocation.
+
+    \item \textbf{Assessment Accuracy Evaluation:} Analysing the AI assessment engine's scoring accuracy across different difficulty levels and skill categories using simulated candidate profiles at five performance levels. Evaluating whether the difficulty-weighted scoring correctly separates candidates by ability and whether the recommendation system assigns appropriate guidance based on performance profiles. Classification metrics including accuracy, precision, and recall are computed for the tier assignment.
+
+    \item \textbf{Matching Quality Evaluation:} Measuring the ML job matching algorithm's accuracy by comparing computed match scores against manually curated candidate--job pairings across multiple ground-truth test cases spanning four match quality categories. Computing classification metrics (accuracy, precision, recall, F1 score) and generating confusion matrices. Critically, this evaluation compares matching performance \textit{with} and \textit{without} the blockchain-verification bonus to directly address the research question, measuring the improvement in matching accuracy attributable to verified credential data.
+\end{enumerate}
+
+\noindent The detailed results of these evaluations will be presented in subsequent sections upon completion of the implementation and testing phases.
