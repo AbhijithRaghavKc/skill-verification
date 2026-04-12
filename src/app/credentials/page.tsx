@@ -236,7 +236,7 @@ export default function CredentialsPage() {
                         <div className="flex justify-between items-center">
                           <span className="text-gray-500">TX Hash</span>
                           <a
-                            href={`https://amoy.polygonscan.com/tx/${credential.blockchainTxHash}`}
+                            href={`https://sepolia.etherscan.io/tx/${credential.blockchainTxHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1 text-blue-600 hover:underline"

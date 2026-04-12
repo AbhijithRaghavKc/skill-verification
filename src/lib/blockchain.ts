@@ -25,14 +25,14 @@ function getContract(signerOrProvider?: ethers.Signer | ethers.Provider) {
   return new ethers.Contract(
     contractAddress,
     CONTRACT_ABI,
-    signerOrProvider || getProvider()
+    signerOrProvider || getProvider(),
   );
 }
 
 export async function issueCredentialOnChain(
   holderAddress: string,
   credentialHash: string,
-  metadataURI: string
+  metadataURI: string,
 ): Promise<{ txHash: string; tokenId: string }> {
   const signer = getSigner();
   const contract = getContract(signer);
@@ -40,15 +40,37 @@ export async function issueCredentialOnChain(
   const tx = await contract.issueCredential(
     holderAddress,
     credentialHash,
-    metadataURI
+    metadataURI,
   );
   const receipt = await tx.wait();
 
-  const event = receipt.logs.find(
-    (log: ethers.Log) => log.topics[0] === ethers.id("CredentialIssued(uint256,address,address,string)")
-  );
+  // Parse logs through the contract interface to reliably extract the tokenId
+  let tokenId = "0";
+  for (const log of receipt.logs) {
+    try {
+      const parsed = contract.interface.parseLog({
+        topics: log.topics as string[],
+        data: log.data,
+      });
+      if (parsed && parsed.name === "CredentialIssued") {
+        tokenId = parsed.args[0].toString();
+        break;
+      }
+    } catch {
+      // Not a matching log, skip
+    }
+  }
 
-  const tokenId = event ? ethers.toBigInt(event.topics[1]).toString() : "0";
+  // Fallback: check Transfer event (ERC721 mint emits Transfer(address(0), to, tokenId))
+  if (tokenId === "0") {
+    const transferTopic = ethers.id("Transfer(address,address,uint256)");
+    const transferLog = receipt.logs.find(
+      (log: ethers.Log) => log.topics[0] === transferTopic,
+    );
+    if (transferLog && transferLog.topics.length >= 4) {
+      tokenId = ethers.toBigInt(transferLog.topics[3]).toString();
+    }
+  }
 
   return {
     txHash: receipt.hash,
@@ -75,7 +97,9 @@ export async function verifyCredentialOnChain(tokenId: string): Promise<{
   };
 }
 
-export async function revokeCredentialOnChain(tokenId: string): Promise<string> {
+export async function revokeCredentialOnChain(
+  tokenId: string,
+): Promise<string> {
   const signer = getSigner();
   const contract = getContract(signer);
 
@@ -85,7 +109,7 @@ export async function revokeCredentialOnChain(tokenId: string): Promise<string> 
 }
 
 export async function getHolderCredentials(
-  holderAddress: string
+  holderAddress: string,
 ): Promise<string[]> {
   const contract = getContract();
   const tokenIds = await contract.getCredentialsByHolder(holderAddress);
@@ -101,7 +125,7 @@ export function generateCredentialHash(data: {
 }): string {
   const encoded = ethers.AbiCoder.defaultAbiCoder().encode(
     ["string", "string", "string", "string[]", "string"],
-    [data.candidateId, data.issuerId, data.title, data.skills, data.issuedAt]
+    [data.candidateId, data.issuerId, data.title, data.skills, data.issuedAt],
   );
   return ethers.keccak256(encoded);
 }

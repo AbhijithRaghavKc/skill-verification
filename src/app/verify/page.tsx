@@ -441,12 +441,12 @@ export default function VerifyPage() {
                 {/* Polygon Explorer Link */}
                 <div className="mt-4 flex items-center justify-end">
                   <a
-                    href={`https://polygonscan.com/token/${process.env.NEXT_PUBLIC_CONTRACT_ADDRESS}?a=${result.tokenId}`}
+                    href={`https://sepolia.etherscan.io/token/${process.env.NEXT_PUBLIC_CONTRACT_ADDRESS}?a=${result.tokenId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 transition-colors"
                   >
-                    View on PolygonScan
+                    View on Etherscan
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 </div>

@@ -11,13 +11,37 @@ export async function POST(req: NextRequest) {
     if (!credentialId && !tokenId) {
       return NextResponse.json(
         { success: false, error: "Credential ID or Token ID required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (tokenId) {
+      let resolvedTokenId = tokenId;
+
+      // If it looks like a tx hash (0x + 64 hex chars), resolve to token ID from DB
+      if (typeof tokenId === "string" && /^0x[a-fA-F0-9]{64}$/.test(tokenId)) {
+        const credential = await db.query.credentials.findFirst({
+          where: eq(credentials.blockchainTxHash, tokenId),
+        });
+
+        if (!credential?.tokenId) {
+          return NextResponse.json({
+            success: true,
+            data: {
+              verified: false,
+              onChain: false,
+              error: "No credential found for this transaction hash",
+            },
+          });
+        }
+
+        resolvedTokenId = credential.tokenId;
+      }
+
       try {
-        const onChainData = await verifyCredentialOnChain(tokenId);
+        console.log("[verify] resolvedTokenId:", resolvedTokenId);
+        const onChainData = await verifyCredentialOnChain(resolvedTokenId);
+        console.log("[verify] onChainData:", onChainData);
         return NextResponse.json({
           success: true,
           data: {
@@ -26,7 +50,8 @@ export async function POST(req: NextRequest) {
             ...onChainData,
           },
         });
-      } catch {
+      } catch (err) {
+        console.error("[verify] on-chain error:", err);
         return NextResponse.json({
           success: true,
           data: {
@@ -45,7 +70,7 @@ export async function POST(req: NextRequest) {
     if (!credential) {
       return NextResponse.json(
         { success: false, error: "Credential not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -77,7 +102,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json(
       { success: false, error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
