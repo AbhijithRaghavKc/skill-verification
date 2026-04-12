@@ -1,0 +1,37 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main  # change to your branch name if different
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted  # runs directly on your EC2 — no SSH or open ports needed
+
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install --production=false
+
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          # Pass secrets as env variables during build
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          BLOCKCHAIN_RPC_URL: ${{ secrets.BLOCKCHAIN_RPC_URL }}
+          BLOCKCHAIN_PRIVATE_KEY: ${{ secrets.BLOCKCHAIN_PRIVATE_KEY }}
+          CONTRACT_ADDRESS: ${{ secrets.CONTRACT_ADDRESS }}
+
+      - name: Restart app with PM2
+        run: |
+          pm2 restart blockchain-app --update-env || pm2 start ecosystem.config.js
+          pm2 save
+
+      - name: Deployment complete
+        run: echo "✅ Deployed successfully at $(date)"
