@@ -287,6 +287,12 @@ export default function CredentialsPage() {
   );
 }
 
+type Candidate = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 function IssueCredentialForm({
   skills,
   onSuccess,
@@ -303,6 +309,23 @@ function IssueCredentialForm({
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [candidatesLoading, setCandidatesLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCandidates() {
+      try {
+        const res = await fetch("/api/users/candidates");
+        const data = await res.json();
+        if (data.success) setCandidates(data.data);
+      } catch {
+        // fail silently
+      } finally {
+        setCandidatesLoading(false);
+      }
+    }
+    fetchCandidates();
+  }, []);
 
   function toggleSkill(skillId: string) {
     setSelectedSkillIds((prev) =>
@@ -342,16 +365,40 @@ function IssueCredentialForm({
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">
-          Candidate ID
+          Candidate
         </label>
-        <Input
-          placeholder="Enter candidate UUID"
-          value={formData.candidateId}
-          onChange={(e) =>
-            setFormData({ ...formData, candidateId: e.target.value })
-          }
-          required
-        />
+        {candidatesLoading ? (
+          <div className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading candidates...
+          </div>
+        ) : candidates.length === 0 ? (
+          <div className="rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-400">
+            No candidates found
+          </div>
+        ) : (
+          <Select
+            value={formData.candidateId}
+            onValueChange={(value) =>
+              setFormData({ ...formData, candidateId: value })
+            }
+            required
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a candidate..." />
+            </SelectTrigger>
+            <SelectContent>
+              {candidates.map((candidate) => (
+                <SelectItem key={candidate.id} value={candidate.id}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{candidate.name}</span>
+                    <span className="text-xs text-gray-400">{candidate.email}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="space-y-2">
