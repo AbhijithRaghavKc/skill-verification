@@ -66,7 +66,16 @@ export async function POST(req: NextRequest) {
         ),
       });
 
-      const newProficiency = Math.min(5, Math.ceil(result.score / 20));
+      // Map score (0-100) to proficiency (1-100) weighted by difficulty.
+      // beginner 100% => ~25, intermediate => ~50, advanced => ~85, expert => 100
+      const difficultyMultiplier: Record<string, number> = {
+        beginner: 0.25,
+        intermediate: 0.50,
+        advanced: 0.85,
+        expert: 1.0,
+      };
+      const multiplier = difficultyMultiplier[assessment.difficulty] ?? 0.5;
+      const newProficiency = Math.max(1, Math.min(100, Math.round(result.score * multiplier)));
 
       if (!existingSkill) {
         await db.insert(userSkills).values({

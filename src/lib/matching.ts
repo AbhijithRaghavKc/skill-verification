@@ -39,14 +39,19 @@ export function calculateJobMatch(
   let verifiedCount = 0;
   const breakdown: MatchResult["skillBreakdown"] = [];
 
+  // Job minLevel is stored on a 1-5 scale; candidate proficiencyLevel is 1-100.
+  // Normalize minLevel to the 1-100 scale (multiply by 20) before comparing.
+  const normalizeMinLevel = (lvl: number) => Math.max(1, lvl * 20);
+
   for (const req of job.requiredSkills) {
     const candidateSkill = candidate.skills.find(
       (s) => s.skillId === req.skillId
     );
+    const normalizedMin = normalizeMinLevel(req.minLevel);
 
     if (candidateSkill) {
       let skillScore =
-        Math.min(candidateSkill.proficiencyLevel / req.minLevel, 1.2) * 100;
+        Math.min(candidateSkill.proficiencyLevel / normalizedMin, 1.2) * 100;
 
       if (candidateSkill.isVerified) {
         skillScore = Math.min(skillScore * verifiedMultiplier, 100);
@@ -59,7 +64,7 @@ export function calculateJobMatch(
         matchScore: Math.round(skillScore),
         isVerified: candidateSkill.isVerified,
         candidateLevel: candidateSkill.proficiencyLevel,
-        requiredLevel: req.minLevel,
+        requiredLevel: normalizedMin,
       });
     } else {
       breakdown.push({
@@ -67,7 +72,7 @@ export function calculateJobMatch(
         matchScore: 0,
         isVerified: false,
         candidateLevel: 0,
-        requiredLevel: req.minLevel,
+        requiredLevel: normalizedMin,
       });
     }
   }
@@ -76,10 +81,11 @@ export function calculateJobMatch(
     const candidateSkill = candidate.skills.find(
       (s) => s.skillId === pref.skillId
     );
+    const normalizedMin = normalizeMinLevel(pref.minLevel);
 
     if (candidateSkill) {
       let skillScore =
-        Math.min(candidateSkill.proficiencyLevel / pref.minLevel, 1.2) * 100;
+        Math.min(candidateSkill.proficiencyLevel / normalizedMin, 1.2) * 100;
 
       if (candidateSkill.isVerified) {
         skillScore = Math.min(skillScore * verifiedMultiplier, 100);
@@ -92,7 +98,7 @@ export function calculateJobMatch(
         matchScore: Math.round(skillScore),
         isVerified: candidateSkill.isVerified,
         candidateLevel: candidateSkill.proficiencyLevel,
-        requiredLevel: pref.minLevel,
+        requiredLevel: normalizedMin,
       });
     }
   }

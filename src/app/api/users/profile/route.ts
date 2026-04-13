@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/db";
-import { users, userSkills, credentials, assessmentAttempts } from "@/db/schema";
+import { users, userSkills, skills, credentials, assessmentAttempts } from "@/db/schema";
 import { eq, count } from "drizzle-orm";
 import { profileUpdateSchema } from "@/lib/validations";
 
@@ -29,9 +29,22 @@ export async function GET() {
       );
     }
 
-    const skills = await db.query.userSkills.findMany({
-      where: eq(userSkills.userId, userId),
-    });
+    // JOIN with skills table so the response includes skill name & category
+    const userSkillsData = await db
+      .select({
+        id: userSkills.id,
+        skillId: userSkills.skillId,
+        proficiencyLevel: userSkills.proficiencyLevel,
+        isVerified: userSkills.isVerified,
+        verifiedAt: userSkills.verifiedAt,
+        credentialId: userSkills.credentialId,
+        skillName: skills.name,
+        skillCategory: skills.category,
+      })
+      .from(userSkills)
+      .innerJoin(skills, eq(userSkills.skillId, skills.id))
+      .where(eq(userSkills.userId, userId))
+      .orderBy(skills.name);
 
     const [credentialCount] = await db
       .select({ count: count() })
@@ -51,7 +64,7 @@ export async function GET() {
       success: true,
       data: {
         ...safeUser,
-        skills,
+        skills: userSkillsData,
         stats: {
           credentials: credentialCount?.count || 0,
           assessments: attemptCount?.count || 0,
@@ -101,6 +114,29 @@ export async function PATCH(req: NextRequest) {
         { status: 400 }
       );
     }
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const userId = (session.user as { id: string }).id;
+
+    await db.delete(users).where(eq(users.id, userId));
+
+    return NextResponse.json({ success: true });
+  } catch {
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }

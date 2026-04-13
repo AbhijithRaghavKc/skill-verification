@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/db";
-import { applications, jobs } from "@/db/schema";
+import { applications, jobs, users } from "@/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { createNotification } from "@/lib/notifications";
 
@@ -10,10 +10,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const userId = (session.user as { id: string }).id;
@@ -34,16 +31,22 @@ export async function GET() {
       const enriched = await Promise.all(
         filtered.map(async (app) => {
           const job = employerJobs.find((j) => j.id === app.jobId);
+          const candidate = await db.query.users.findFirst({
+            where: eq(users.id, app.candidateId),
+            columns: { id: true, name: true },
+          });
           return {
             id: app.id,
+            jobId: app.jobId,
             status: app.status,
             matchScore: app.matchScore,
             coverLetter: app.coverLetter,
             appliedAt: app.createdAt,
             candidateId: app.candidateId,
-            job: job
-              ? { title: job.title, company: job.company }
-              : null,
+            candidate: candidate
+              ? { id: candidate.id, name: candidate.name }
+              : { id: app.candidateId, name: "Unknown Candidate" },
+            job: job ? { title: job.title, company: job.company } : null,
           };
         })
       );
@@ -51,6 +54,7 @@ export async function GET() {
       return NextResponse.json({ success: true, data: enriched });
     }
 
+    // Candidate: return their own applications
     const userApps = await db.query.applications.findMany({
       where: eq(applications.candidateId, userId),
       orderBy: [desc(applications.createdAt)],
@@ -58,27 +62,20 @@ export async function GET() {
 
     const enriched = await Promise.all(
       userApps.map(async (app) => {
-        const job = await db.query.jobs.findFirst({
-          where: eq(jobs.id, app.jobId),
-        });
+        const job = await db.query.jobs.findFirst({ where: eq(jobs.id, app.jobId) });
         return {
           id: app.id,
           status: app.status,
           matchScore: app.matchScore,
           appliedAt: app.createdAt,
-          job: job
-            ? { title: job.title, company: job.company }
-            : null,
+          job: job ? { title: job.title, company: job.company } : null,
         };
       })
     );
 
     return NextResponse.json({ success: true, data: enriched });
   } catch {
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -86,10 +83,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const role = (session.user as { role: string }).role;
@@ -100,14 +94,34 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const { applicationId, status } = await req.json();
+    const { applicationId, status, matchScore } = await req.json();
+
+    // Allow match-score-only updates (no status change required)
+    if (matchScore !== undefined && status === undefined) {
+      const app = await db.query.applications.findFirst({
+        where: eq(applications.id, applicationId),
+      });
+      if (!app) {
+        return NextResponse.json({ success: false, error: "Application not found" }, { status: 404 });
+      }
+      const userId = (session.user as { id: string }).id;
+      const job = await db.query.jobs.findFirst({
+        where: and(eq(jobs.id, app.jobId), eq(jobs.employerId, userId)),
+      });
+      if (!job) {
+        return NextResponse.json({ success: false, error: "Not authorized" }, { status: 403 });
+      }
+      const [updated] = await db
+        .update(applications)
+        .set({ matchScore: Math.round(matchScore), updatedAt: new Date() })
+        .where(eq(applications.id, applicationId))
+        .returning();
+      return NextResponse.json({ success: true, data: updated });
+    }
 
     const validStatuses = ["pending", "reviewed", "shortlisted", "rejected", "accepted"];
     if (!validStatuses.includes(status)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid status" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Invalid status" }, { status: 400 });
     }
 
     const app = await db.query.applications.findFirst({
@@ -115,10 +129,7 @@ export async function PATCH(req: NextRequest) {
     });
 
     if (!app) {
-      return NextResponse.json(
-        { success: false, error: "Application not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: "Application not found" }, { status: 404 });
     }
 
     const userId = (session.user as { id: string }).id;
@@ -139,26 +150,28 @@ export async function PATCH(req: NextRequest) {
       .where(eq(applications.id, applicationId))
       .returning();
 
-    // Notify the candidate about their application status change
     const statusLabels: Record<string, string> = {
       reviewed: "is being reviewed",
       shortlisted: "has been shortlisted",
       accepted: "has been accepted",
       rejected: "has been rejected",
     };
+
     await createNotification({
       userId: app.candidateId,
-      title: `Application ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-      message: `Your application for "${job.title}" ${statusLabels[status] || "has been updated"}.`,
+      title: "Application " + status.charAt(0).toUpperCase() + status.slice(1),
+      message:
+        "Your application for " +
+        job.title +
+        " " +
+        (statusLabels[status] || "has been updated") +
+        ".",
       type: "application",
       link: "/profile",
     });
 
     return NextResponse.json({ success: true, data: updated });
   } catch {
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

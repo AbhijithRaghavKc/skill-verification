@@ -253,6 +253,8 @@ export default function JobsPage() {
             setFilterType={setFilterType}
             setSelectedJob={setSelectedJob}
             setDetailOpen={setDetailOpen}
+            skills={skills}
+            onRefreshJobs={fetchJobs}
           />
         ) : (
           <PublicJobListings
@@ -974,6 +976,8 @@ function EmployerView({
   setFilterType,
   setSelectedJob,
   setDetailOpen,
+  skills,
+  onRefreshJobs,
 }: {
   jobs: Job[];
   loading: boolean;
@@ -983,6 +987,8 @@ function EmployerView({
   setFilterType: (v: string) => void;
   setSelectedJob: (job: Job | null) => void;
   setDetailOpen: (open: boolean) => void;
+  skills: Skill[];
+  onRefreshJobs: () => void;
 }) {
   const [applications, setApplications] = useState<
     {
@@ -1056,13 +1062,22 @@ function EmployerView({
                   setDetailOpen(true);
                 }}
                 actionSlot={
-                  job._count?.applications !== undefined ? (
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                      <Users className="h-3.5 w-3.5" />
-                      {job._count.applications} application
-                      {job._count.applications !== 1 ? "s" : ""}
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    {job._count?.applications !== undefined && (
+                      <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                        <Users className="h-3.5 w-3.5" />
+                        {job._count.applications} application
+                        {job._count.applications !== 1 ? "s" : ""}
+                      </div>
+                    )}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <EditSkillsDialog
+                        job={job}
+                        skills={skills}
+                        onSaved={onRefreshJobs}
+                      />
                     </div>
-                  ) : undefined
+                  </div>
                 }
               />
             ))}
@@ -1146,6 +1161,100 @@ function EmployerView({
         )}
       </TabsContent>
     </Tabs>
+  );
+}
+
+function EditSkillsDialog({
+  job,
+  skills,
+  onSaved,
+}: {
+  job: Job;
+  skills: Skill[];
+  onSaved: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [requiredSkills, setRequiredSkills] = useState<SkillRequirement[]>([]);
+  const [preferredSkills, setPreferredSkills] = useState<SkillRequirement[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleOpen(val: boolean) {
+    if (val) {
+      setRequiredSkills(job.requiredSkills ?? []);
+      setPreferredSkills(job.preferredSkills ?? []);
+      setError("");
+    }
+    setOpen(val);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch("/api/jobs/" + job.id, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requiredSkills, preferredSkills }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.error || "Failed to save");
+      } else {
+        setOpen(false);
+        onSaved();
+      }
+    } catch {
+      setError("Network error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5">
+          <TrendingUp className="h-3.5 w-3.5" />
+          Edit Skills
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit Required Skills</DialogTitle>
+          <DialogDescription>
+            Set the skills candidates need for &quot;{job.title}&quot;. Match scores update immediately.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-5 py-2">
+          <SkillPicker
+            label="Required Skills (must-have)"
+            skills={skills}
+            selected={requiredSkills}
+            onAdd={(req) => setRequiredSkills((prev) => [...prev, req])}
+            onRemove={(id) => setRequiredSkills((prev) => prev.filter((r) => r.skillId !== id))}
+            defaultLevel={3}
+          />
+          <SkillPicker
+            label="Preferred Skills (nice-to-have)"
+            skills={skills}
+            selected={preferredSkills}
+            onAdd={(req) => setPreferredSkills((prev) => [...prev, req])}
+            onRemove={(id) => setPreferredSkills((prev) => prev.filter((r) => r.skillId !== id))}
+            defaultLevel={2}
+          />
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "Save Skills"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -14,6 +14,9 @@ import {
   Link as LinkIcon,
   Mail,
   Building2,
+  Plus,
+  Trash2,
+  ShieldCheck,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 import {
@@ -40,12 +43,18 @@ import { WalletConnect } from "@/components/wallet-connect";
 type Skill = {
   id: string;
   skillId: string;
-  level: number;
-  verified: boolean;
-  skill?: {
-    name: string;
-    category: string;
-  };
+  proficiencyLevel: number;
+  isVerified: boolean | null;
+  verifiedAt: string | null;
+  credentialId: string | null;
+  skillName: string;
+  skillCategory: string;
+};
+
+type AvailableSkill = {
+  id: string;
+  name: string;
+  category: string;
 };
 
 type ProfileData = {
@@ -232,7 +241,7 @@ export default function ProfilePage() {
                     <Mail className="h-4 w-4" />
                     <span className="text-xs">
                       Member since{" "}
-                      {profile?.createdAt ? formatDate(profile.createdAt) : "—"}
+                      {profile?.createdAt ? formatDate(profile.createdAt) : "-"}
                     </span>
                   </div>
 
@@ -270,7 +279,7 @@ export default function ProfilePage() {
           {/* Skills Tab (candidates only) */}
           {isCandidate && (
             <TabsContent value="skills">
-              <SkillsTab skills={profile?.skills ?? []} />
+              <SkillsTab skills={profile?.skills ?? []} onRefresh={fetchProfile} />
             </TabsContent>
           )}
 
@@ -387,7 +396,7 @@ function EditProfileForm({
             />
           ) : (
             <p className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900">
-              {profile?.name || "—"}
+              {profile?.name || "-"}
             </p>
           )}
         </div>
@@ -619,79 +628,313 @@ function WalletSection({
 
 /* ---------- Skills Tab ---------- */
 
-function SkillsTab({ skills }: { skills: Skill[] }) {
-  if (skills.length === 0) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Shield className="h-12 w-12 text-gray-300" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
-            No skills yet
-          </h3>
-          <p className="mt-1 text-gray-500">
-            Complete assessments to add verified skills to your profile
-          </p>
-        </CardContent>
-      </Card>
-    );
+function SkillsTab({
+  skills,
+  onRefresh,
+}: {
+  skills: Skill[];
+  onRefresh: () => void;
+}) {
+  const [availableSkills, setAvailableSkills] = useState<AvailableSkill[]>([]);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedSkillId, setSelectedSkillId] = useState("");
+  const [proficiency, setProficiency] = useState(50);
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  // Inline edit state: map of userSkillId -> draft proficiency value
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState(50);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/skills")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setAvailableSkills(d.data); })
+      .catch(() => {});
+  }, []);
+
+  // Skills the candidate doesn't already have
+  const existingSkillIds = new Set(skills.map((s) => s.skillId));
+  const addableSkills = availableSkills.filter((s) => !existingSkillIds.has(s.id));
+
+  async function handleAdd() {
+    if (!selectedSkillId) return;
+    setAdding(true);
+    setError("");
+    try {
+      const res = await fetch("/api/users/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skillId: selectedSkillId, proficiencyLevel: proficiency }),
+      });
+      const data = await res.json();
+      if (!data.success) { setError(data.error || "Failed to add skill"); return; }
+      setShowAddForm(false);
+      setSelectedSkillId("");
+      setProficiency(50);
+      onRefresh();
+    } finally {
+      setAdding(false);
+    }
   }
+
+  async function handleRemove(userSkillId: string) {
+    setRemoving(userSkillId);
+    try {
+      const res = await fetch("/api/users/skills", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userSkillId }),
+      });
+      const data = await res.json();
+      if (data.success) onRefresh();
+    } finally {
+      setRemoving(null);
+    }
+  }
+
+  async function handleUpdateProficiency(skill: Skill) {
+    setSaving(skill.id);
+    try {
+      const res = await fetch("/api/users/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skillId: skill.skillId, proficiencyLevel: editValue }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEditingId(null);
+        onRefresh();
+      }
+    } finally {
+      setSaving(null);
+    }
+  }
+
+  const verifiedCount = skills.filter((s) => s.isVerified).length;
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Skills &amp; Proficiency
-        </h2>
-        <Badge variant="secondary">{skills.length} skills</Badge>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Skills &amp; Proficiency</h2>
+          {skills.length > 0 && (
+            <p className="text-sm text-gray-500">
+              {verifiedCount} of {skills.length} blockchain-verified
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {skills.length > 0 && <Badge variant="secondary">{skills.length} skills</Badge>}
+          <Button
+            size="sm"
+            className="gap-2"
+            onClick={() => { setShowAddForm(!showAddForm); setError(""); }}
+          >
+            <Plus className="h-4 w-4" />
+            Add Skill
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {skills.map((skill) => (
-          <Card key={skill.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-5">
-              <div className="mb-3 flex items-start justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">
-                    {skill.skill?.name ?? `Skill ${skill.skillId.slice(0, 8)}`}
-                  </h3>
-                  {skill.skill?.category && (
-                    <p className="text-xs text-gray-500">
-                      {skill.skill.category}
+      {/* Add Skill Form */}
+      {showAddForm && (
+        <Card className="border-blue-100 bg-blue-50">
+          <CardContent className="p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-800">Add a skill to your profile</h3>
+            {error && (
+              <div className="rounded-lg bg-red-50 border border-red-100 p-2 text-xs text-red-600">{error}</div>
+            )}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-700">Skill</label>
+              <select
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={selectedSkillId}
+                onChange={(e) => setSelectedSkillId(e.target.value)}
+              >
+                <option value="">Select a skill...</option>
+                {addableSkills.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.category})
+                  </option>
+                ))}
+              </select>
+              {addableSkills.length === 0 && availableSkills.length > 0 && (
+                <p className="text-xs text-gray-400">You already have all available skills.</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-700">
+                Self-assessed Proficiency: <span className="font-bold text-blue-700">{proficiency}%</span>
+                <span className="ml-2 text-gray-400">
+                  ({proficiency >= 80 ? "Expert" : proficiency >= 60 ? "Advanced" : proficiency >= 40 ? "Intermediate" : "Beginner"})
+                </span>
+              </label>
+              <input
+                type="range"
+                min={1}
+                max={100}
+                value={proficiency}
+                onChange={(e) => setProficiency(Number(e.target.value))}
+                className="w-full accent-blue-600"
+              />
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>Beginner</span>
+                <span>Intermediate</span>
+                <span>Advanced</span>
+                <span>Expert</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 italic">
+              Self-reported skills show as Unverified. Get a credential from an institution to earn blockchain verification.
+            </p>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleAdd} disabled={adding || !selectedSkillId} className="gap-1">
+                <Save className="h-3 w-3" />
+                {adding ? "Adding..." : "Add Skill"}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => { setShowAddForm(false); setError(""); }}>
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty state */}
+      {skills.length === 0 && !showAddForm && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Shield className="h-12 w-12 text-gray-300" />
+            <h3 className="mt-4 text-lg font-medium text-gray-900">No skills yet</h3>
+            <p className="mt-1 text-sm text-gray-500 text-center">
+              Add your skills above, or complete assessments to earn verified skills.
+            </p>
+            <Button className="mt-4 gap-2" onClick={() => setShowAddForm(true)}>
+              <Plus className="h-4 w-4" />
+              Add Your First Skill
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Skills Grid */}
+      {skills.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {skills.map((skill) => (
+            <Card key={skill.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-5">
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      {skill.isVerified ? (
+                        <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
+                      ) : (
+                        <Shield className="h-4 w-4 text-gray-300 shrink-0" />
+                      )}
+                      <h3 className="font-medium text-gray-900 truncate">{skill.skillName}</h3>
+                    </div>
+                    <p className="text-xs text-gray-500 ml-5">{skill.skillCategory}</p>
+                    {skill.isVerified && skill.verifiedAt && (
+                      <p className="text-xs text-emerald-600 ml-5">
+                        Verified {formatDate(skill.verifiedAt)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {skill.isVerified ? (
+                      <Badge variant="success" className="gap-1 text-xs">
+                        <ShieldCheck className="h-3 w-3" />
+                        Verified
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">Unverified</Badge>
+                    )}
+                    <button
+                      onClick={() => {
+                        setEditingId(skill.id);
+                        setEditValue(skill.proficiencyLevel);
+                      }}
+                      title="Edit proficiency"
+                      className="text-gray-300 hover:text-blue-500 transition-colors"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    {!skill.isVerified && (
+                      <button
+                        onClick={() => handleRemove(skill.id)}
+                        disabled={removing === skill.id}
+                        title="Remove skill"
+                        className="text-gray-300 hover:text-red-400 transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {editingId === skill.id ? (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Proficiency</span>
+                      <span className="font-semibold text-blue-600">{editValue}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={100}
+                      value={editValue}
+                      onChange={(e) => setEditValue(Number(e.target.value))}
+                      className="w-full accent-blue-600"
+                    />
+                    <p className="text-xs text-gray-400">
+                      {editValue >= 80 ? "Expert" : editValue >= 60 ? "Advanced" : editValue >= 40 ? "Intermediate" : "Beginner"}
                     </p>
-                  )}
-                </div>
-                {skill.verified ? (
-                  <Badge variant="success" className="gap-1">
-                    <Shield className="h-3 w-3" />
-                    Verified
-                  </Badge>
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        size="sm"
+                        onClick={() => handleUpdateProficiency(skill)}
+                        disabled={saving === skill.id}
+                        className="gap-1 h-7 text-xs"
+                      >
+                        <Save className="h-3 w-3" />
+                        {saving === skill.id ? "Saving..." : "Save"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditingId(null)}
+                        className="h-7 text-xs"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
-                  <Badge variant="outline">Unverified</Badge>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Proficiency</span>
+                      <span className="font-semibold text-gray-900">{skill.proficiencyLevel}%</span>
+                    </div>
+                    <Progress value={skill.proficiencyLevel} />
+                    <p className="text-xs text-gray-400">
+                      {skill.proficiencyLevel >= 80
+                        ? "Expert"
+                        : skill.proficiencyLevel >= 60
+                        ? "Advanced"
+                        : skill.proficiencyLevel >= 40
+                        ? "Intermediate"
+                        : "Beginner"}
+                    </p>
+                  </div>
                 )}
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Proficiency</span>
-                  <span className="font-medium text-gray-900">
-                    {skill.level}%
-                  </span>
-                </div>
-                <Progress value={skill.level} />
-                <p className="text-xs text-gray-400">
-                  {skill.level >= 80
-                    ? "Expert"
-                    : skill.level >= 60
-                    ? "Advanced"
-                    : skill.level >= 40
-                    ? "Intermediate"
-                    : "Beginner"}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -952,46 +1195,34 @@ function ChangePasswordForm() {
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
-              Current Password
-            </label>
+            <label className="text-sm font-medium text-gray-700">Current Password</label>
             <Input
               type="password"
               placeholder="Enter current password"
               value={formData.currentPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, currentPassword: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
-              New Password
-            </label>
+            <label className="text-sm font-medium text-gray-700">New Password</label>
             <Input
               type="password"
               placeholder="At least 8 characters"
               value={formData.newPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, newPassword: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
-              Confirm New Password
-            </label>
+            <label className="text-sm font-medium text-gray-700">Confirm New Password</label>
             <Input
               type="password"
               placeholder="Repeat new password"
               value={formData.confirmPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, confirmPassword: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               required
             />
           </div>
@@ -1031,7 +1262,6 @@ function DangerZone() {
       return;
     }
 
-    // Redirect to home after successful deletion
     window.location.href = "/";
   }
 
@@ -1044,34 +1274,14 @@ function DangerZone() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {!confirming ? (
-          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4">
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                Delete Account
-              </p>
-              <p className="text-xs text-gray-500">
-                Permanently delete your account and all associated data
-              </p>
-            </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setConfirming(true)}
-            >
-              Delete Account
-            </Button>
-          </div>
-        ) : (
+        {confirming ? (
           <form onSubmit={handleDelete} className="space-y-4">
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <p className="mb-3 text-sm font-semibold text-red-700">
                 Are you absolutely sure? This action cannot be undone.
               </p>
               {error && (
-                <div className="mb-3 rounded-lg bg-red-100 p-3 text-sm text-red-700">
-                  {error}
-                </div>
+                <div className="mb-3 rounded-lg bg-red-100 p-3 text-sm text-red-700">{error}</div>
               )}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
@@ -1086,27 +1296,31 @@ function DangerZone() {
                 />
               </div>
               <div className="mt-4 flex gap-2">
-                <Button
-                  type="submit"
-                  variant="destructive"
-                  disabled={deleting || !password}
-                >
+                <Button type="submit" variant="destructive" disabled={deleting || !password}>
                   {deleting ? "Deleting..." : "Yes, Delete My Account"}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    setConfirming(false);
-                    setPassword("");
-                    setError("");
-                  }}
+                  onClick={() => { setConfirming(false); setPassword(""); setError(""); }}
                 >
                   Cancel
                 </Button>
               </div>
             </div>
           </form>
+        ) : (
+          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Delete Account</p>
+              <p className="text-xs text-gray-500">
+                Permanently delete your account and all associated data
+              </p>
+            </div>
+            <Button variant="destructive" size="sm" onClick={() => setConfirming(true)}>
+              Delete Account
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>
