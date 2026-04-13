@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "blockchain-app",
+      name: "skillchain",
       script: "node_modules/.bin/next",
       args: "start",
       cwd: "./",

@@ -11,13 +11,15 @@ jobs:
     runs-on: self-hosted # runs directly on your EC2 — no SSH or open ports needed
 
     steps:
-      - name: Checkout latest code
-        uses: actions/checkout@v4
+      - name: Pull latest code
+        run: git -C /home/ubuntu/skill-verification pull origin main
 
       - name: Install dependencies
+        working-directory: /home/ubuntu/skill-verification
         run: npm install --production=false
 
       - name: Build Next.js app
+        working-directory: /home/ubuntu/skill-verification
         run: npm run build
         env:
           # Pass secrets as env variables during build
@@ -30,7 +32,7 @@ jobs:
 
       - name: Restart app with PM2
         run: |
-          pm2 restart skillchain --update-env || pm2 start ecosystem.config.js
+          pm2 restart skillchain --update-env || pm2 start /home/ubuntu/skill-verification/ecosystem.config.js
           pm2 save
 
       - name: Deployment complete
