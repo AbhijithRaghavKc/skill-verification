@@ -6,12 +6,7 @@ import Link from "next/link";
 import { Shield, Mail, Lock, User, Building, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -71,7 +66,7 @@ export default function SignUpPage() {
 
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Create Account</CardTitle>
+            <CardTitle className="text-2xl">Create Your Account</CardTitle>
             <p className="text-sm text-gray-500">
               Join the blockchain skill verification platform
             </p>
@@ -191,11 +186,7 @@ export default function SignUpPage() {
                 </div>
               )}
 
-              <Button
-                type="submit"
-                className="w-full gap-2"
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full gap-2" disabled={loading}>
                 {loading ? "Creating account..." : "Create Account"}
                 <ArrowRight className="h-4 w-4" />
               </Button>
