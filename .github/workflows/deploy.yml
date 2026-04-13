@@ -3,12 +3,12 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main  # change to your branch name if different
+      - main # change to your branch name if different
 
 jobs:
   deploy:
     name: Deploy
-    runs-on: self-hosted  # runs directly on your EC2 — no SSH or open ports needed
+    runs-on: self-hosted # runs directly on your EC2 — no SSH or open ports needed
 
     steps:
       - name: Checkout latest code
@@ -30,8 +30,9 @@ jobs:
 
       - name: Restart app with PM2
         run: |
-          pm2 restart blockchain-app --update-env || pm2 start ecosystem.config.js
+          pm2 restart skillchain --update-env || pm2 start ecosystem.config.js
           pm2 save
 
       - name: Deployment complete
         run: echo "✅ Deployed successfully at $(date)"
+
