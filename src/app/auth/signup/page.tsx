@@ -66,7 +66,7 @@ export default function SignUpPage() {
 
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Create Your Account</CardTitle>
+            <CardTitle className="text-2xl">Create Account</CardTitle>
             <p className="text-sm text-gray-500">
               Join the blockchain skill verification platform
             </p>
