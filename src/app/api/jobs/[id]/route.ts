@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const job = await db.query.jobs.findFirst({
@@ -17,7 +17,7 @@ export async function GET(
     if (!job) {
       return NextResponse.json(
         { success: false, error: "Job not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -25,21 +25,21 @@ export async function GET(
   } catch {
     return NextResponse.json(
       { success: false, error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -53,14 +53,14 @@ export async function PATCH(
     if (!existing) {
       return NextResponse.json(
         { success: false, error: "Job not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (existing.employerId !== userId && userRole !== "admin") {
       return NextResponse.json(
         { success: false, error: "Forbidden" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -73,7 +73,7 @@ export async function PATCH(
       preferredSkills?: { skillId: string; minLevel: number }[];
       title?: string;
       description?: string;
-      status?: string;
+      status?: "open" | "closed" | "filled" | "draft";
     } = { updatedAt: new Date() };
 
     if (Array.isArray(body.requiredSkills)) {
@@ -83,8 +83,10 @@ export async function PATCH(
       update.preferredSkills = body.preferredSkills;
     }
     if (typeof body.title === "string") update.title = body.title;
-    if (typeof body.description === "string") update.description = body.description;
-    if (typeof body.status === "string") update.status = body.status;
+    if (typeof body.description === "string")
+      update.description = body.description;
+    if (typeof body.status === "string")
+      update.status = body.status as "open" | "closed" | "filled" | "draft";
 
     const [updated] = await db
       .update(jobs)
@@ -96,21 +98,21 @@ export async function PATCH(
   } catch {
     return NextResponse.json(
       { success: false, error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -124,14 +126,14 @@ export async function DELETE(
     if (!existing) {
       return NextResponse.json(
         { success: false, error: "Job not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (existing.employerId !== userId && userRole !== "admin") {
       return NextResponse.json(
         { success: false, error: "Forbidden" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -142,7 +144,8 @@ export async function DELETE(
   } catch {
     return NextResponse.json(
       { success: false, error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
+
